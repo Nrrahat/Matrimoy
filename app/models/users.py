@@ -7,9 +7,10 @@ class User(Base):
     __tablename__="users"
     id: Mapped[int]=mapped_column(primary_key=True,index=True)
 
+    custom_id:Mapped[str]=mapped_column(String(2550),unique=True,index=True)
     name:Mapped[str]=mapped_column(String(2550))
     email:Mapped[str]=mapped_column(String(2550),unique=True,index=True)
-    hash_password:Mapped[str]=mapped_column(String(2550))
+    password:Mapped[str]=mapped_column(String(2550))
 
     gender:Mapped[str]=mapped_column(String(2550))
     age:Mapped[int]=mapped_column(Integer)

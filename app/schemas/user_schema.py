@@ -1,4 +1,4 @@
-from pydantic import BaseModel,Emailstr
+from pydantic import BaseModel,EmailStr
 from datetime import datetime
 
 class UserBase(BaseModel):
@@ -9,10 +9,10 @@ class UserBase(BaseModel):
 
 class InputUserBase(UserBase):
     id:int
-    createed_at:datetime
+    created_at:datetime
 
 class InputUser(UserBase):
-    email:Emailstr
+    email:EmailStr
     password:str
     date_of_birth:str
 
