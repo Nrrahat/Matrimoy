@@ -23,3 +23,7 @@ class OutputUser(UserBase):
     class Config:
         from_attribute=True
 
+class TokenResponse(UserBase):
+    access_token:str
+    token_type:str
+
