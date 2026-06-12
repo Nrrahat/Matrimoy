@@ -1,15 +1,7 @@
 import jwt
 import bcrypt
 from datetime import datetime, timedelta,timezone
-from dotenv import load_dotenv
-import os
-
-
-load_dotenv()
-
-ALGORITHM=os.getenv("ALGORITHM","algo-not-found-in-dotenv")
-SECRET_KEY=os.getenv("SECRET_KEY")
-ACCESS_TOKEN_EXPIRE_MINUTES=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES",30))
+from app.core.config import settings
 
 def hash_password(password:str) -> str :
     """This function convert plain password into hash password """
@@ -40,8 +32,8 @@ def verify_password(plain_password:str,hash_password:str):
 def create_access_token(data:dict):
 
     to_encode=data.copy()
-    expire=datetime.now(timezone.utc)+timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire=datetime.now(timezone.utc)+timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
 
-    return jwt.encode(to_encode,SECRET_KEY,algorithm=ALGORITHM)
+    return jwt.encode(to_encode,settings.SECRET_KEY,algorithm=settings.ALGORITHM)
 
