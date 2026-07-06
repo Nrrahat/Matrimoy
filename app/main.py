@@ -1,12 +1,19 @@
 from fastapi import FastAPI
-from app.core.database import engine,Base
-from app.models import User  # Crucial: Import the model so SQLAlchemy registers it!
 
-# Tell SQLAlchemy to connect to Postgres and generate all tables defined in your models
-Base.metadata.create_all(bind=engine)
+from app.api.auth import router as auth_router
+from app.api.profile import router as profile_router
 
-app = FastAPI(title="Matrimony Backend API")
+app=FastAPI(
+    title="Matrimony APP",
+    description="Bankend handle user,profile,matching",
+    version="1.0.0"
+)
+
+app.include_router(auth_router)
+app.include_router(profile_router)
 
 @app.get("/")
-def read_root():
-    return {"message": "Matrimony API connected to PostgreSQL successfully!"}
+def root():
+    return{
+        "message":"Wellcome to the matrimony application"
+    }

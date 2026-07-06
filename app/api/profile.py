@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.schemas.profile_schema import ProfileBase,ProfileUpdate
 from app.schemas.user_schema import OutputUser
-from core.database import get_db
-from services.profile_service import ProfileService
+from app.core.database import get_db
+from app.services.profile_service import ProfileService
 
 
 
@@ -21,11 +21,11 @@ def find_user_profile(user_id:int,db:Session = Depends(get_db)):
     return profile
 
 @router.post(
-    path="/{updateprofile}",
+    path="/updateprofile/{user_id}",
     response_model=ProfileUpdate,
     status_code=status.HTTP_200_OK
 )
-def update_profile(db:Session,user_data:ProfileUpdate,user_id:int):
+def update_profile(user_data: ProfileUpdate,user_id:int,db:Session = Depends(get_db)):
 
-    updated_profile=update_profile(db=db,user_data=user_data,user_id=user_id)
+    updated_profile=ProfileService.update_profile(user_data=user_data,user_id=user_id,db=db)
     return updated_profile
