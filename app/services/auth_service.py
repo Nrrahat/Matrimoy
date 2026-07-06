@@ -2,6 +2,8 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.users import User
 from app.core.security import hash_password,verify_password,create_access_token
+from app.models.profiles import Profile
+
 
 
 class Authentication:
@@ -27,8 +29,15 @@ class Authentication:
             date_of_birth=user_data.date_of_birth
         )
         db.add(new_user)
+        db.flush()
+
+        db_profile=Profile(
+            user_id=new_user.id
+        )
+        db.add(db_profile)
+
         db.commit() 
-        db.refresh(new_user)
+        db.refresh(db_profile)
 
         return new_user
     
