@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.chats import ChatRoom, Message
-from app.services.matching_service import MatchService  # Assumes MatchService exists
+from app.services.matching_service import MatchingService  # Assumes MatchService exists
+from app.models.users import User
 
 class ChatService:
     @staticmethod
@@ -21,15 +22,20 @@ class ChatService:
         if room:
             return room
 
-        # 2. Check 60% match threshold if room does not exist yet
-        match_score = MatchService.calculate_match_percentage(db, current_user_id, target_user_id)
-        if match_score < 60.0:
+       # 2. Fetch User objects from database to prevent 'int' object errors
+        user_a = db.query(User).filter(User.id == current_user_id).first()
+        user_b = db.query(User).filter(User.id == target_user_id).first()
+
+        if not user_a or not user_b:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Messaging locked. Match score is {match_score:.1f}%, but at least 60.0% is required."
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="One or both users were not found."
             )
 
-        # 3. Create room if verified
+        # 3. Pass full User objects to calculate_reciprocal_score
+        match_score = MatchingService.calculate_reciprocal_score(user_a, user_b)
+
+        # 4. Create room if verified
         new_room = ChatRoom(
             user1_id=current_user_id,
             user2_id=target_user_id,

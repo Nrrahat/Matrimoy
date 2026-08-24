@@ -50,7 +50,7 @@ class Authentication:
         if not verify_password(password,user.password):
             return None
         
-        token_data={email: user.email}
+        token_data={"sub": user.email}
         access_token=create_access_token(token_data)
 
         return {
