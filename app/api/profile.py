@@ -11,21 +11,21 @@ from app.services.profile_service import ProfileService
 router=APIRouter(prefix="/profile",tags=["Profile"])
 
 @router.get(
-    path="/{user_id}",
+    path="/{custom_id}",
     response_model=ProfileBase,
     status_code=status.HTTP_200_OK
     )
-def find_user_profile(user_id:int,db:Session = Depends(get_db)):
+def find_user_profile(custom_id:str,db:Session = Depends(get_db)):
 
-    profile=ProfileService.get_user_by_id(db=db,user_id=user_id)
+    profile=ProfileService.get_user_by_id(db=db,custom_id=custom_id)
     return profile
 
 @router.post(
-    path="/updateprofile/{user_id}",
+    path="/updateprofile/{custom_id}",
     response_model=ProfileUpdate,
     status_code=status.HTTP_200_OK
 )
-def update_profile(user_data: ProfileUpdate,user_id:int,db:Session = Depends(get_db)):
+def update_profile(user_data: ProfileUpdate,custom_id:str,db:Session = Depends(get_db)):
 
-    updated_profile=ProfileService.update_profile(user_data=user_data,user_id=user_id,db=db)
+    updated_profile=ProfileService.update_profile(user_data=user_data,custom_id=custom_id,db=db)
     return updated_profile

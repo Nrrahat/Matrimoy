@@ -19,21 +19,21 @@ class MatchingService:
 
         score = 0.0
 
-        # Religion Match (25 Points)
+        # Religion Match (35 Points)
         if pref.preferred_religions and profile.religion in pref.preferred_religions:
-            score += 25.0
+            score += 35.0
 
-        # Education Match (25 Points)
+        # Education Match (30 Points)
         if pref.preferred_education and profile.education in pref.preferred_education:
-            score += 25.0
+            score += 30.0
 
-        # Occupation Match (25 Points)
+        # Occupation Match (20 Points)
         if pref.preferred_occupations and profile.occupation in pref.preferred_occupations:
-            score += 25.0
+            score += 20.0
 
-        # Location Match (25 Points)
+        # Location Match (15 Points)
         if pref.preferred_cities and profile.address in pref.preferred_cities:
-            score += 25.0
+            score += 15.0
 
         return score
 
