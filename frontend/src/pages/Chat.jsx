@@ -42,15 +42,26 @@ export default function Chat() {
 
   // ── 2. WebSocket Connection ───────────────────────────────────────────
   useEffect(() => {
-    if (!token || !currentUserId) return
+    if (!token || !currentUserId || !roomId) return
 
-    // Read environment variable for Render backend, fall back to local dev
+    // 1. Get raw base URL from env, or select default host
     const envWsUrl = import.meta.env.VITE_WS_BASE_URL
     const defaultWsUrl = window.location.hostname === 'localhost'
       ? 'ws://localhost:8000'
-      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
-    
-    const baseUrl = envWsUrl || defaultWsUrl
+      : 'wss://matrimoy.onrender.com' // Explicit Render backend fallback
+
+    let baseUrl = envWsUrl || defaultWsUrl
+
+    // 2. Normalize http/https protocols to ws/wss automatically
+    if (baseUrl.startsWith('http://')) {
+      baseUrl = baseUrl.replace('http://', 'ws://')
+    } else if (baseUrl.startsWith('https://')) {
+      baseUrl = baseUrl.replace('https://', 'wss://')
+    }
+
+    // 3. Remove trailing slash if present
+    baseUrl = baseUrl.replace(/\/$/, '')
+
     const wsUrl = `${baseUrl}/chat/ws/${roomId}?token=${encodeURIComponent(token)}`
 
     const ws = new WebSocket(wsUrl)
