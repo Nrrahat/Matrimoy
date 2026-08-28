@@ -1,6 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import { useAuth } from './context/AuthContext'
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 
@@ -62,7 +61,7 @@ export default function App() {
             }}>
               <span style={{ fontSize: '4rem' }}>404</span>
               <h2>Page not found</h2>
-              <a href="/" className="btn btn-primary">Go Home</a>
+              <Link to="/" className="btn btn-primary">Go Home</Link>
             </div>
           } />
         </Routes>
