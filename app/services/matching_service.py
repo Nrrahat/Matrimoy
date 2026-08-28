@@ -64,6 +64,16 @@ class MatchingService:
                 detail="Please set your match preferences before requesting matches"
             )
 
+        profile = current_user.profile
+        required_profile_fields = (
+            "bio", "religion", "education", "address", "income", "occupation"
+        )
+        if not profile or any(not getattr(profile, field) for field in required_profile_fields):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please complete your profile before requesting matches"
+            )
+
         user_pref = current_user.preference
 
         # Step 1: Query potential candidates excluding current user
@@ -100,6 +110,8 @@ class MatchingService:
             matched_profiles.append(
                 MatchedUserProfileResponse(
                     user_id=candidate.id,
+                    custom_id=candidate.custom_id,
+                    name=candidate.name,
                     email=candidate.email,
                     age=candidate.age,
                     gender=candidate.gender,

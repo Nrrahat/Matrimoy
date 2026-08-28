@@ -1,0 +1,79 @@
+.pref-page { gap: var(--space-lg); }
+
+.pref-form {
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.pref-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--clr-border);
+}
+.pref-section:last-of-type { border-bottom: none; }
+
+.pref-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--clr-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Multi-select chips */
+.multi-select {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+.ms-chip {
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--clr-border);
+  background: transparent;
+  color: var(--clr-text-muted);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--dur-normal) var(--ease-smooth);
+}
+.ms-chip:hover {
+  border-color: var(--clr-primary);
+  color: var(--clr-primary-2);
+  background: rgba(201,24,74,0.06);
+}
+.ms-chip-active {
+  background: rgba(201,24,74,0.15) !important;
+  border-color: var(--clr-primary) !important;
+  color: var(--clr-primary-2) !important;
+  font-weight: 600;
+}
+
+.pref-submit {
+  align-self: flex-start;
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+}
+
+/* Reuse auth message classes from Auth.css — import via index.css */
+.auth-success, .auth-error {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.87rem;
+}
+.auth-success {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: var(--clr-success);
+}
+.auth-error {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--clr-error);
+}

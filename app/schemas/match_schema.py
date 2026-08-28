@@ -9,6 +9,8 @@ from typing import Optional, List
 class MatchedUserProfileResponse(BaseModel):
     """Schema representing the candidate profile sent directly to the client."""
     user_id: int
+    custom_id: str
+    name: str
     email: str
     
     # Personal & Profile Details

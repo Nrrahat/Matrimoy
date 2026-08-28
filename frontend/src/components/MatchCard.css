@@ -1,0 +1,105 @@
+.match-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+.match-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--grad-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-normal) var(--ease-smooth);
+}
+.match-card:hover::before { transform: scaleX(1); }
+
+.match-avatar {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  align-self: center;
+}
+.match-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(201,24,74,0.3), rgba(255,77,109,0.15));
+  border: 2px solid rgba(201,24,74,0.4);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--clr-primary-2);
+  box-shadow: 0 0 20px rgba(201,24,74,0.2);
+}
+.match-gender-badge {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--clr-bg-2);
+  border: 1px solid var(--clr-border);
+  font-size: 0.75rem;
+}
+
+.match-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+.match-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--clr-text);
+}
+.match-age { font-size: 0.75rem; }
+
+.match-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.match-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--clr-text-muted);
+}
+.detail-icon { font-size: 0.9rem; flex-shrink: 0; }
+
+.match-bio {
+  font-size: 0.83rem;
+  color: var(--clr-text-dim);
+  font-style: italic;
+  line-height: 1.5;
+  border-left: 2px solid rgba(201,24,74,0.3);
+  padding-left: var(--space-sm);
+}
+
+.match-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+  width: 100%;
+}
+.match-actions .btn {
+  flex: 1 1 140px;
+  min-width: 0;
+  justify-content: center;
+}
