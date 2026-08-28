@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useLocation } from 'react-router-dom'
-import { getChatHistory, getOnlineUsers } from '../api/client'
+import { getChatHistory, getRoomOnlineUsers } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ChatBubble from '../components/ChatBubble'
 import './Chat.css'
