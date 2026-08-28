@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useParams, useLocation } from 'react-router-dom'
-import { getChatHistory } from '../api/client'
+import { useParams, useLocation } from 'react'
+import { getChatHistory, getOnlineUsers } from '../api/client' // Add HTTP endpoint for initial status
 import { useAuth } from '../context/AuthContext'
 import ChatBubble from '../components/ChatBubble'
 import './Chat.css'
@@ -13,7 +13,6 @@ export default function Chat() {
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  // Tracks whether the OTHER user is also in this room
   const [otherOnline, setOtherOnline] = useState(false)
   const [wsReady, setWsReady] = useState(false)
   const [error, setError] = useState('')
@@ -21,36 +20,58 @@ export default function Chat() {
   const wsRef = useRef(null)
   const bottomRef = useRef(null)
 
-  // Current user's numeric DB id (from JWT stored in context)
   const currentUserId = user?.user_id ?? null
 
-  // ── Load message history once ──────────────────────────────
+  // ── 1. Fetch persistent history & initial presence status ──────────────
   useEffect(() => {
+    if (!roomId) return
+
+    // Load past messages (for offline users catching up)
     getChatHistory(roomId)
       .then((res) => setMessages(res.data))
-      .catch(() => {}) // empty room is fine
-  }, [roomId])
+      .catch(() => {})
 
-  // ── WebSocket ──────────────────────────────────────────────
+    // Fetch initial online status before WS broadcasts kick in
+    getOnlineUsers(roomId)
+      .then((res) => {
+        const activeIds = res.data || []
+        if (currentUserId) {
+          setOtherOnline(activeIds.some((id) => id !== currentUserId))
+        }
+      })
+      .catch(() => {})
+  }, [roomId, currentUserId])
+
+  // ── 2. WebSocket Connection ───────────────────────────────────────────
   useEffect(() => {
-    if (!token) return
-    const wsUrl = `ws://localhost:8000/chat/ws/${roomId}?token=${token}`
+    if (!token || !currentUserId) return
+
+    // Replace with environment variable for production (wss://)
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const host = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host
+    const wsUrl = `${wsProtocol}//${host}/chat/ws/${roomId}?token=${token}`
+
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 
-    ws.onopen = () => setWsReady(true)
+    ws.onopen = () => {
+      setWsReady(true)
+      setError('')
+    }
+
     ws.onclose = () => {
       setWsReady(false)
       setOtherOnline(false)
     }
-    ws.onerror = () => setError('Connection lost. Please refresh.')
+
+    ws.onerror = () => setError('Connection lost. Reconnecting...')
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
 
         if (data.type === 'presence') {
-          // Presence update: check if the other user (not me) is online
+          // Filter out current user using guaranteed fresh ID
           const others = (data.online_user_ids || []).filter(
             (id) => id !== currentUserId
           )
@@ -59,32 +80,39 @@ export default function Chat() {
         }
 
         if (data.type === 'message') {
-          // Avoid duplicating messages that we already loaded from history
           setMessages((prev) => {
             const exists = prev.some((m) => m.id === data.id)
             return exists ? prev : [...prev, data]
           })
         }
-      } catch {
-        // ignore malformed frames
+      } catch (err) {
+        console.error('Failed to parse WebSocket message:', err)
       }
     }
 
-    return () => ws.close()
+    return () => {
+      ws.close()
+    }
   }, [roomId, token, currentUserId])
 
-  // ── Auto-scroll to latest message ─────────────────────────
+  // ── 3. Auto-scroll ─────────────────────────────────────────────────────
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // ── Send ───────────────────────────────────────────────────
-  const sendMessage = useCallback((e) => {
-    e.preventDefault()
-    if (!input.trim() || !wsReady) return
-    wsRef.current?.send(input.trim())
-    setInput('')
-  }, [input, wsReady])
+  // ── 4. Send Message Handler ────────────────────────────────────────────
+  const sendMessage = useCallback(
+    (e) => {
+      e.preventDefault()
+      const trimmed = input.trim()
+      if (!trimmed || !wsReady || !wsRef.current) return
+
+      // Sending raw text to match FastAPI `data = await websocket.receive_text()`
+      wsRef.current.send(trimmed)
+      setInput('')
+    },
+    [input, wsReady]
+  )
 
   const displayName = matchName.includes('@') ? matchName.split('@')[0] : matchName
   const avatarLetters = displayName.slice(0, 2).toUpperCase()
@@ -98,16 +126,12 @@ export default function Chat() {
           <span className="chat-header-name">{displayName}</span>
           <span className={`chat-status ${otherOnline ? 'online' : 'offline'}`}>
             <span className="status-dot" />
-            {!wsReady
-              ? 'Connecting…'
-              : otherOnline
-              ? 'Online'
-              : 'Offline'}
+            {!wsReady ? 'Connecting…' : otherOnline ? 'Online' : 'Offline'}
           </span>
         </div>
       </div>
 
-      {/* ── Messages ── */}
+      {/* ── Messages Container ── */}
       <div className="chat-messages">
         {error && <p className="chat-error">{error}</p>}
 
@@ -129,7 +153,7 @@ export default function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Input bar ── */}
+      {/* ── Message Input Form ── */}
       <form id="chat-input-form" className="chat-input-bar glass" onSubmit={sendMessage}>
         <input
           id="chat-message-input"
