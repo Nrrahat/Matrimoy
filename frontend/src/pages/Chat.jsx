@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useParams, useLocation } from 'react'
-import { getChatHistory, getOnlineUsers } from '../api/client' // Add HTTP endpoint for initial status
+import { useParams, useLocation } from 'react-router-dom'
+import { getChatHistory, getOnlineUsers } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ChatBubble from '../components/ChatBubble'
 import './Chat.css'
@@ -26,12 +26,10 @@ export default function Chat() {
   useEffect(() => {
     if (!roomId) return
 
-    // Load past messages (for offline users catching up)
     getChatHistory(roomId)
       .then((res) => setMessages(res.data))
       .catch(() => {})
 
-    // Fetch initial online status before WS broadcasts kick in
     getOnlineUsers(roomId)
       .then((res) => {
         const activeIds = res.data || []
@@ -46,22 +44,40 @@ export default function Chat() {
   useEffect(() => {
     if (!token || !currentUserId) return
 
-    // Replace with environment variable for production (wss://)
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const host = window.location.hostname === 'localhost' ? 'localhost:8000' : window.location.host
-    const wsUrl = `${wsProtocol}//${host}/chat/ws/${roomId}?token=${token}`
+    // Read environment variable for Render backend, fall back to local dev
+    const envWsUrl = import.meta.env.VITE_WS_BASE_URL
+    const defaultWsUrl = window.location.hostname === 'localhost'
+      ? 'ws://localhost:8000'
+      : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
+    
+    const baseUrl = envWsUrl || defaultWsUrl
+    const wsUrl = `${baseUrl}/chat/ws/${roomId}?token=${encodeURIComponent(token)}`
 
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws
 
+    // Heartbeat setup to prevent Render 55s timeout
+    let pingInterval = null
+
     ws.onopen = () => {
       setWsReady(true)
       setError('')
+      
+      // Send periodic ping every 30 seconds
+      pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'ping' }))
+        }
+      }, 30000)
     }
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       setWsReady(false)
       setOtherOnline(false)
+      if (pingInterval) clearInterval(pingInterval)
+      if (event.code === 1008) {
+        setError('Authentication failed. Please log in again.')
+      }
     }
 
     ws.onerror = () => setError('Connection lost. Reconnecting...')
@@ -70,8 +86,9 @@ export default function Chat() {
       try {
         const data = JSON.parse(event.data)
 
+        if (data.type === 'pong') return // Ignore heartbeat responses
+
         if (data.type === 'presence') {
-          // Filter out current user using guaranteed fresh ID
           const others = (data.online_user_ids || []).filter(
             (id) => id !== currentUserId
           )
@@ -91,6 +108,7 @@ export default function Chat() {
     }
 
     return () => {
+      if (pingInterval) clearInterval(pingInterval)
       ws.close()
     }
   }, [roomId, token, currentUserId])
@@ -107,7 +125,6 @@ export default function Chat() {
       const trimmed = input.trim()
       if (!trimmed || !wsReady || !wsRef.current) return
 
-      // Sending raw text to match FastAPI `data = await websocket.receive_text()`
       wsRef.current.send(trimmed)
       setInput('')
     },
