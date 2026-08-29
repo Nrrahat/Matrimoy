@@ -30,7 +30,7 @@ export default function Chat() {
       .then((res) => setMessages(res.data))
       .catch(() => {})
 
-    getOnlineUsers(roomId)
+    getRoomOnlineUsers(roomId)
       .then((res) => {
         const activeIds = res.data || []
         if (currentUserId) {
